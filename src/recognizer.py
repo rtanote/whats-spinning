@@ -161,6 +161,9 @@ class ACRCloudRecognizer:
             debug_path = Path(self.debug_dir)
             debug_path.mkdir(parents=True, exist_ok=True)
 
+            # Clean up old debug files (keep only last 10)
+            self._cleanup_old_debug_files(debug_path, max_files=10)
+
             timestamp = int(time.time())
             filename = f"failed_{reason}_{timestamp}.wav"
             filepath = debug_path / filename
@@ -171,6 +174,27 @@ class ACRCloudRecognizer:
             print(f"Debug: Saved audio to {filepath}")
         except Exception as e:
             print(f"Warning: Failed to save debug audio: {e}")
+
+    def _cleanup_old_debug_files(self, debug_path, max_files: int = 10) -> None:
+        """
+        Remove old debug audio files, keeping only the most recent ones.
+
+        Args:
+            debug_path: Path to debug directory.
+            max_files: Maximum number of files to keep.
+        """
+        try:
+            # Get all WAV files in debug directory
+            wav_files = sorted(debug_path.glob("failed_*.wav"), key=lambda p: p.stat().st_mtime)
+
+            # Remove oldest files if exceeding max_files
+            files_to_remove = len(wav_files) - max_files
+            if files_to_remove > 0:
+                for old_file in wav_files[:files_to_remove]:
+                    old_file.unlink()
+                    print(f"Debug: Removed old file {old_file.name}")
+        except Exception as e:
+            print(f"Warning: Failed to cleanup old debug files: {e}")
 
 
 def main():
