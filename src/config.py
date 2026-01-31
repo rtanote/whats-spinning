@@ -17,6 +17,7 @@ class ACRCloudConfig:
     access_key: str
     access_secret: str
     host: str = "identify-ap-southeast-1.acrcloud.com"
+    debug_dir: str | None = None  # Directory to save failed recognition audio
 
 
 @dataclass
@@ -126,8 +127,10 @@ def load_config(config_path: str | Path | None = None) -> Config:
             "ACRCLOUD_ACCESS_SECRET environment variables or add them to config.yaml"
         )
 
+    debug_dir = _get_env("ACRCLOUD_DEBUG_DIR", acrcloud_config.get("debug_dir"))
+
     acrcloud = ACRCloudConfig(
-        access_key=access_key, access_secret=access_secret, host=host
+        access_key=access_key, access_secret=access_secret, host=host, debug_dir=debug_dir
     )
 
     # Audio config

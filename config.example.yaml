@@ -3,6 +3,7 @@ acrcloud:
   access_key: "YOUR_ACCESS_KEY"
   access_secret: "YOUR_ACCESS_SECRET"
   host: "identify-ap-southeast-1.acrcloud.com"
+  debug_dir: null  # Save failed recognition audio for debugging (e.g., "./debug_audio")
 
 # Audio Configuration
 audio:

@@ -59,8 +59,12 @@ class WhatSpinning:
             access_key=self.config.acrcloud.access_key,
             access_secret=self.config.acrcloud.access_secret,
             host=self.config.acrcloud.host,
+            debug_dir=self.config.acrcloud.debug_dir,
         )
-        print("ACRCloud recognizer initialized")
+        if self.config.acrcloud.debug_dir:
+            print(f"ACRCloud recognizer initialized (debug mode: {self.config.acrcloud.debug_dir})")
+        else:
+            print("ACRCloud recognizer initialized")
 
         # LaMetric client
         if not dry_run:
@@ -128,12 +132,13 @@ class WhatSpinning:
                             # Recognition succeeded
                             # Check if same track as last recognition
                             is_same = self.state.is_same_track(result)
+                            should_repush = self.state.should_repush_notification()
 
-                            if is_same:
+                            if is_same and not should_repush:
                                 print(f"Same track detected: {result.title} - {result.artist}")
                                 print("Skipping duplicate notification and logging")
                             else:
-                                # Display on LaMetric (only if different track)
+                                # Display on LaMetric (if different track OR notification was deleted)
                                 if not self.dry_run and self.lametric:
                                     display_text = f"{result.title} - {result.artist}"
                                     self.lametric.push_notification(
@@ -141,11 +146,18 @@ class WhatSpinning:
                                         cycles=self.config.lametric.cycles,
                                         lifetime=self.config.lametric.lifetime
                                     )
+                                    if should_repush:
+                                        print(f"Re-pushed notification after silence: {result.title} - {result.artist}")
                                 else:
                                     print(f"[DRY-RUN] Would display: {result.title} - {result.artist}")
 
                                 # Log (only if different track)
-                                self.logger.log(result)
+                                if not is_same:
+                                    self.logger.log(result)
+
+                                # Reset notification deleted flag
+                                if should_repush:
+                                    self.state.reset_notification_deleted()
 
                             # Start cooldown (even for duplicate tracks)
                             self.state.on_recognition(result)

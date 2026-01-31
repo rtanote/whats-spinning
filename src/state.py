@@ -41,6 +41,9 @@ class StateManager:
         self.consecutive_failures: int = 0
         self.paused_until: float | None = None
 
+        # Notification deletion tracking
+        self.notification_deleted: bool = False
+
     def can_recognize(self) -> bool:
         """
         Check if recognition is allowed (not in cooldown or paused).
@@ -81,6 +84,19 @@ class StateManager:
             and result.artist == self.last_result.artist
         )
 
+    def should_repush_notification(self) -> bool:
+        """
+        Check if notification should be re-pushed (after deletion due to silence).
+
+        Returns:
+            True if notification was deleted and should be re-pushed.
+        """
+        return self.notification_deleted
+
+    def reset_notification_deleted(self) -> None:
+        """Reset the notification deleted flag."""
+        self.notification_deleted = False
+
     def on_recognition(self, result: RecognitionResult) -> None:
         """
         Called when recognition succeeds.
@@ -110,6 +126,7 @@ class StateManager:
         print("Sustained silence detected, resetting cooldown")
         self.last_recognition_time = None
         self.last_result = None
+        self.notification_deleted = True
         self._reset_silence()
 
     def update_silence_duration(self, is_silent: bool, delta_sec: float) -> bool:

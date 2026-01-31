@@ -27,7 +27,7 @@ class RecognitionResult:
 class ACRCloudRecognizer:
     """ACRCloud music recognizer."""
 
-    def __init__(self, access_key: str, access_secret: str, host: str = "identify-ap-southeast-1.acrcloud.com"):
+    def __init__(self, access_key: str, access_secret: str, host: str = "identify-ap-southeast-1.acrcloud.com", debug_dir: str | None = None):
         """
         Initialize recognizer.
 
@@ -35,11 +35,13 @@ class ACRCloudRecognizer:
             access_key: ACRCloud access key.
             access_secret: ACRCloud access secret.
             host: ACRCloud API host.
+            debug_dir: Directory to save failed recognition audio files (None to disable).
         """
         self.access_key = access_key
         self.access_secret = access_secret
         self.host = host
         self.endpoint = f"https://{host}/v1/identify"
+        self.debug_dir = debug_dir
 
     def _generate_signature(
         self, method: str, uri: str, timestamp: int, string_to_sign: str
@@ -99,11 +101,13 @@ class ACRCloudRecognizer:
             if result.get("status", {}).get("code") != 0:
                 msg = result.get("status", {}).get("msg", "Unknown error")
                 print(f"Recognition failed: {msg}")
+                self._save_debug_audio(audio_data, "api_error")
                 return None
 
             metadata = result.get("metadata")
             if not metadata or not metadata.get("music"):
                 print("No music recognized")
+                self._save_debug_audio(audio_data, "no_match")
                 return None
 
             music = metadata["music"][0]
@@ -134,10 +138,39 @@ class ACRCloudRecognizer:
 
         except requests.RequestException as e:
             print(f"ACRCloud API error: {e}")
+            self._save_debug_audio(audio_data, "network_error")
             return None
         except (KeyError, IndexError, ValueError) as e:
             print(f"Failed to parse ACRCloud response: {e}")
+            self._save_debug_audio(audio_data, "parse_error")
             return None
+
+    def _save_debug_audio(self, audio_data: bytes, reason: str) -> None:
+        """
+        Save audio data for debugging purposes.
+
+        Args:
+            audio_data: Audio data to save.
+            reason: Reason for failure (used in filename).
+        """
+        if not self.debug_dir:
+            return
+
+        try:
+            from pathlib import Path
+            debug_path = Path(self.debug_dir)
+            debug_path.mkdir(parents=True, exist_ok=True)
+
+            timestamp = int(time.time())
+            filename = f"failed_{reason}_{timestamp}.wav"
+            filepath = debug_path / filename
+
+            with open(filepath, "wb") as f:
+                f.write(audio_data)
+
+            print(f"Debug: Saved audio to {filepath}")
+        except Exception as e:
+            print(f"Warning: Failed to save debug audio: {e}")
 
 
 def main():
