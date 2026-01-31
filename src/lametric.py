@@ -6,7 +6,16 @@ import urllib3
 from typing import Any
 
 import requests
-from zeroconf import ServiceBrowser, ServiceListener, Zeroconf
+
+# Try to import zeroconf (optional dependency)
+try:
+    from zeroconf import ServiceBrowser, ServiceListener, Zeroconf
+    ZEROCONF_AVAILABLE = True
+except ImportError:
+    ZEROCONF_AVAILABLE = False
+    ServiceBrowser = None  # type: ignore
+    ServiceListener = None  # type: ignore
+    Zeroconf = None  # type: ignore
 
 # Disable SSL warnings for self-signed certificates
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -75,6 +84,11 @@ class LaMetricClient:
         Returns:
             Device IP address if found, None otherwise.
         """
+        if not ZEROCONF_AVAILABLE:
+            print("Warning: zeroconf library not available, auto-discovery disabled")
+            print("Please specify LaMetric IP address in config.yaml")
+            return None
+
         print("Discovering LaMetric device...")
         zeroconf = Zeroconf()
         listener = LaMetricDiscoveryListener()
