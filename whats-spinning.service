@@ -1,0 +1,19 @@
+[Unit]
+Description=Whats Spinning - Automatic Music Recognition
+After=network.target sound.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/whats-spinning
+ExecStart=/home/pi/whats-spinning/venv/bin/python -m src.main
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target

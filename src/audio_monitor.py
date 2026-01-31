@@ -16,7 +16,7 @@ class AudioMonitor:
 
     def __init__(
         self,
-        device: str | None = None,
+        device: str | int | None = None,
         sample_rate: int = 44100,
         volume_threshold_db: float = -40.0,
         silence_threshold_db: float = -50.0,
@@ -25,25 +25,44 @@ class AudioMonitor:
         Initialize audio monitor.
 
         Args:
-            device: Audio input device name. None for system default.
+            device: Audio input device name or index. None for system default.
             sample_rate: Sample rate in Hz.
             volume_threshold_db: Volume threshold for trigger in dB.
             silence_threshold_db: Silence threshold in dB.
         """
-        self.device = device
         self.sample_rate = sample_rate
         self.volume_threshold_db = volume_threshold_db
         self.silence_threshold_db = silence_threshold_db
-        self.channels = 1  # Mono
+        self.channels = 1  # Mono for lower CPU usage
 
-        # Verify device exists
-        if device is not None:
+        # Convert device name to index if needed
+        if device is not None and isinstance(device, str):
             devices = self.list_devices()
-            if not any(d["name"] == device for d in devices if d["max_input_channels"] > 0):
+            # Find matching device (exact match or partial match)
+            device_index = None
+            device_name = None
+            for d in devices:
+                if d["max_input_channels"] > 0:
+                    # Try exact match first
+                    if d["name"] == device:
+                        device_index = d["index"]
+                        device_name = d["name"]
+                        break
+                    # Try partial match (device string appears in device name)
+                    elif device in d["name"]:
+                        device_index = d["index"]
+                        device_name = d["name"]
+                        # Don't break - continue to see if there's an exact match
+
+            if device_index is None:
                 available = [d["name"] for d in devices if d["max_input_channels"] > 0]
                 raise ValueError(
                     f"Audio device '{device}' not found. Available input devices: {available}"
                 )
+            self.device = device_index
+        else:
+            # Use device index directly or None for default
+            self.device = device
 
     @staticmethod
     def list_devices() -> list[dict[str, Any]]:

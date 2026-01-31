@@ -104,7 +104,7 @@ class WhatSpinning:
         print("\nPress Ctrl+C to stop")
         print("=" * 50 + "\n")
 
-        loop_interval = 0.1  # 100ms
+        loop_interval = 0.5  # 500ms (increased for Raspberry Pi compatibility)
 
         try:
             while self.running:
