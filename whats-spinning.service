@@ -1,12 +1,16 @@
 [Unit]
 Description=Whats Spinning - Automatic Music Recognition
-After=network.target sound.target
+After=network.target sound.target systemd-udev-settle.service
+Wants=systemd-udev-settle.service
 
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/whats-spinning
-ExecStart=/home/pi/whats-spinning/venv/bin/python -m src.main
+Group=audio
+SupplementaryGroups=audio
+WorkingDirectory=/home/pi/dev/whats-spinning
+ExecStartPre=/bin/sleep 5
+ExecStart=/home/pi/dev/whats-spinning/venv/bin/python -m src.main
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -14,6 +18,8 @@ StandardError=journal
 
 # Environment
 Environment="PYTHONUNBUFFERED=1"
+Environment="AUDIODEV=hw:1,0"
+Environment="PULSE_SERVER="
 
 [Install]
 WantedBy=multi-user.target
