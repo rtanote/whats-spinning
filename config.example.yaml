@@ -9,8 +9,8 @@ audio:
   input_device: null  # null = system default, or specify device name
   sample_rate: 44100
   volume_threshold_db: -40
-  silence_threshold_db: -50
-  silence_duration_sec: 5
+  silence_threshold_db: -40  # Higher threshold for better track gap detection (closer to track volume)
+  silence_duration_sec: 0.5  # Shorter duration for faster track change detection
   recognition_duration_sec: 10
 
 # LaMetric Configuration
@@ -23,7 +23,7 @@ lametric:
 
 # Recognition Configuration
 recognition:
-  cooldown_sec: 120
+  cooldown_sec: 90  # Fallback when silence detection fails (balanced for API usage)
   max_failed_attempts: 3  # Pause recognition after this many consecutive failures
   pause_duration_sec: 900  # Pause duration in seconds (900 = 15 minutes)
 
