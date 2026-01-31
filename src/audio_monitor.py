@@ -33,7 +33,7 @@ class AudioMonitor:
         self.sample_rate = sample_rate
         self.volume_threshold_db = volume_threshold_db
         self.silence_threshold_db = silence_threshold_db
-        self.channels = 1  # Mono for lower CPU usage
+        self.channels = 2  # Stereo for better recognition quality
 
         # Convert device name to index if needed
         if device is not None and isinstance(device, str):

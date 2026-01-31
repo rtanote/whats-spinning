@@ -89,6 +89,7 @@ class ACRCloudRecognizer:
             "signature": signature,
             "data_type": "audio",
             "signature_version": "1",
+            "audio_format": "recorded",  # Disable humming detection
         }
 
         try:
