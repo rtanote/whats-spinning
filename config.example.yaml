@@ -1,0 +1,32 @@
+# ACRCloud Configuration
+acrcloud:
+  access_key: "YOUR_ACCESS_KEY"
+  access_secret: "YOUR_ACCESS_SECRET"
+  host: "identify-ap-southeast-1.acrcloud.com"
+
+# Audio Configuration
+audio:
+  input_device: null  # null = system default, or specify device name
+  sample_rate: 44100
+  volume_threshold_db: -40
+  silence_threshold_db: -50
+  silence_duration_sec: 5
+  recognition_duration_sec: 10
+
+# LaMetric Configuration
+lametric:
+  ip: null  # null = auto-discover via mDNS
+  api_key: "YOUR_LAMETRIC_API_KEY"
+  icon: "i9218"  # Music note icon
+  lifetime: 300000  # Display duration in milliseconds (300000ms = 5 minutes)
+  cycles: 0  # 0 = display until manually dismissed, 1+ = number of display cycles
+
+# Recognition Configuration
+recognition:
+  cooldown_sec: 120
+  max_failed_attempts: 3  # Pause recognition after this many consecutive failures
+  pause_duration_sec: 900  # Pause duration in seconds (900 = 15 minutes)
+
+# Logging Configuration
+logging:
+  log_file_path: "./recognition_log.json"
