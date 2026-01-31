@@ -93,7 +93,7 @@ class ACRCloudRecognizer:
 
         try:
             print("Sending recognition request to ACRCloud...")
-            response = requests.post(self.endpoint, files=files, data=data, timeout=10)
+            response = requests.post(self.endpoint, files=files, data=data, timeout=30)
             response.raise_for_status()
             result = response.json()
 
@@ -107,6 +107,14 @@ class ACRCloudRecognizer:
             metadata = result.get("metadata")
             if not metadata or not metadata.get("music"):
                 print("No music recognized")
+                # Print debug info about the response
+                if metadata:
+                    print(f"Debug: Metadata present but no music. Keys: {list(metadata.keys())}")
+                    # Check if there are low-confidence matches
+                    if "custom_files" in metadata:
+                        print(f"Debug: Custom files found: {len(metadata['custom_files'])}")
+                else:
+                    print("Debug: No metadata in response")
                 self._save_debug_audio(audio_data, "no_match")
                 return None
 
