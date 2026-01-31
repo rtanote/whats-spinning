@@ -21,30 +21,35 @@ except ImportError:
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class LaMetricDiscoveryListener(ServiceListener):
-    """Listener for LaMetric device discovery via mDNS."""
+# Only define discovery listener if zeroconf is available
+if ZEROCONF_AVAILABLE:
+    class LaMetricDiscoveryListener(ServiceListener):
+        """Listener for LaMetric device discovery via mDNS."""
 
-    def __init__(self):
-        """Initialize listener."""
-        self.ip_address: str | None = None
+        def __init__(self):
+            """Initialize listener."""
+            self.ip_address: str | None = None
 
-    def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
-        """Service discovered callback."""
-        info = zc.get_service_info(type_, name)
-        if info and info.addresses:
-            # Get first IPv4 address
-            for addr in info.addresses:
-                if len(addr) == 4:  # IPv4
-                    self.ip_address = ".".join(str(b) for b in addr)
-                    break
+        def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
+            """Service discovered callback."""
+            info = zc.get_service_info(type_, name)
+            if info and info.addresses:
+                # Get first IPv4 address
+                for addr in info.addresses:
+                    if len(addr) == 4:  # IPv4
+                        self.ip_address = ".".join(str(b) for b in addr)
+                        break
 
-    def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
-        """Service updated callback."""
-        pass
+        def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
+            """Service updated callback."""
+            pass
 
-    def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
-        """Service removed callback."""
-        pass
+        def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
+            """Service removed callback."""
+            pass
+else:
+    # Dummy class when zeroconf is not available
+    LaMetricDiscoveryListener = None  # type: ignore
 
 
 class LaMetricClient:
