@@ -127,6 +127,7 @@ class StateManager:
         self.last_recognition_time = None
         self.last_result = None
         self.notification_deleted = True
+        self.consecutive_failures = 0  # Reset failure counter on silence
         self._reset_silence()
 
     def update_silence_duration(self, is_silent: bool, delta_sec: float) -> bool:
