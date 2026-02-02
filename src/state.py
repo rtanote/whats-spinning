@@ -36,6 +36,7 @@ class StateManager:
         self.last_result: RecognitionResult | None = None
         self.silence_start_time: float | None = None
         self.cumulative_silence_duration: float = 0.0
+        self.silence_triggered: bool = False  # Track if silence event was already triggered
 
         # Failed recognition tracking
         self.consecutive_failures: int = 0
@@ -128,7 +129,6 @@ class StateManager:
         self.last_result = None
         self.notification_deleted = True
         self.consecutive_failures = 0  # Reset failure counter on silence
-        self._reset_silence()
 
     def update_silence_duration(self, is_silent: bool, delta_sec: float) -> bool:
         """
@@ -146,9 +146,10 @@ class StateManager:
                 self.silence_start_time = time.time()
             self.cumulative_silence_duration += delta_sec
 
-            # Check if sustained silence threshold reached
-            if self.cumulative_silence_duration >= self.silence_duration_sec:
+            # Check if sustained silence threshold reached (and not already triggered)
+            if self.cumulative_silence_duration >= self.silence_duration_sec and not self.silence_triggered:
                 self.on_silence()
+                self.silence_triggered = True
                 return True
         else:
             # Reset silence tracking if sound detected
@@ -160,6 +161,7 @@ class StateManager:
         """Reset silence tracking state."""
         self.silence_start_time = None
         self.cumulative_silence_duration = 0.0
+        self.silence_triggered = False
 
     def get_status(self) -> dict[str, any]:
         """
